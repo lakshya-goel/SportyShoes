@@ -17,11 +17,13 @@ public class CategoryRepository {
 
     @Autowired
     EntityManagerFactory emf;
-    
+
     public Category save(Category category) {
+        EntityManager manager = null;
+        EntityTransaction tran = null;
         try {
-            EntityManager manager = emf.createEntityManager();
-            EntityTransaction tran = manager.getTransaction();
+            manager = emf.createEntityManager();
+            tran = manager.getTransaction();
             tran.begin();
             if (category.getCategoryId() == 0) {
                 manager.persist(category);
@@ -31,42 +33,56 @@ public class CategoryRepository {
             tran.commit();
             return category;
         } catch (Exception e) {
+            if (tran != null && tran.isActive()) tran.rollback();
             System.err.println(e);
             return null;
+        } finally {
+            if (manager != null) manager.close();
         }
     }
-    
+
     public Category findById(int categoryId) {
+        EntityManager manager = null;
         try {
-            EntityManager manager = emf.createEntityManager();
+            manager = emf.createEntityManager();
             return manager.find(Category.class, categoryId);
-        } catch (Exception e) {
-            return null;
+        } finally {
+            if (manager != null) manager.close();
         }
     }
-    
+
     public Category findByName(String name) {
+        EntityManager manager = null;
         try {
-            EntityManager manager = emf.createEntityManager();
+            manager = emf.createEntityManager();
             Query query = manager.createQuery("SELECT c FROM Category c WHERE c.name = :name");
             query.setParameter("name", name);
             return (Category) query.getSingleResult();
         } catch (Exception e) {
             return null;
+        } finally {
+            if (manager != null) manager.close();
         }
     }
-    
+
     @SuppressWarnings("unchecked")
     public List<Category> findAll() {
-        EntityManager manager = emf.createEntityManager();
-        Query query = manager.createQuery("SELECT c FROM Category c ORDER BY c.name");
-        return query.getResultList();
-    }
-    
-    public void deleteById(int categoryId) {
+        EntityManager manager = null;
         try {
-            EntityManager manager = emf.createEntityManager();
-            EntityTransaction tran = manager.getTransaction();
+            manager = emf.createEntityManager();
+            Query query = manager.createQuery("SELECT c FROM Category c ORDER BY c.name");
+            return query.getResultList();
+        } finally {
+            if (manager != null) manager.close();
+        }
+    }
+
+    public void deleteById(int categoryId) {
+        EntityManager manager = null;
+        EntityTransaction tran = null;
+        try {
+            manager = emf.createEntityManager();
+            tran = manager.getTransaction();
             tran.begin();
             Category category = manager.find(Category.class, categoryId);
             if (category != null) {
@@ -74,7 +90,10 @@ public class CategoryRepository {
             }
             tran.commit();
         } catch (Exception e) {
+            if (tran != null && tran.isActive()) tran.rollback();
             System.err.println(e);
+        } finally {
+            if (manager != null) manager.close();
         }
     }
 }

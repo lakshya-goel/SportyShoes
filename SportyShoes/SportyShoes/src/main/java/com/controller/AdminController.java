@@ -61,7 +61,6 @@ public class AdminController {
                        RedirectAttributes redirectAttributes) {
         
         Admin admin = adminService.authenticateAdmin(username, password);
-        System.out.println(" actual: "+admin.getPassword() + " " + admin.getUsername());
         
         if (admin != null) {
             session.setAttribute("admin", admin);
@@ -95,7 +94,7 @@ public class AdminController {
         List<Order> recentOrders = orderService.getRecentOrders(5);
         model.addAttribute("recentOrders", recentOrders);
         
-        return "dashboard";
+        return "admin/dashboard";
     }
     
     // Admin Logout

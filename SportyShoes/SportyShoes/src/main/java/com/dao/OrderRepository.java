@@ -18,11 +18,13 @@ public class OrderRepository {
 
     @Autowired
     EntityManagerFactory emf;
-    
+
     public Order save(Order order) {
+        EntityManager manager = null;
+        EntityTransaction tran = null;
         try {
-            EntityManager manager = emf.createEntityManager();
-            EntityTransaction tran = manager.getTransaction();
+            manager = emf.createEntityManager();
+            tran = manager.getTransaction();
             tran.begin();
             if (order.getOrderId() == 0) {
                 manager.persist(order);
@@ -32,84 +34,198 @@ public class OrderRepository {
             tran.commit();
             return order;
         } catch (Exception e) {
-            System.err.println(e);
-            return null;
+            if (tran != null && tran.isActive()) {
+                tran.rollback();
+            }
+            throw e;
+        } finally {
+            if (manager != null) {
+                manager.close();
+            }
         }
     }
-    
+
     public Order findById(int orderId) {
+        EntityManager manager = null;
         try {
-            EntityManager manager = emf.createEntityManager();
+            manager = emf.createEntityManager();
             return manager.find(Order.class, orderId);
-        } catch (Exception e) {
-            return null;
+        } finally {
+            if (manager != null) {
+                manager.close();
+            }
         }
     }
-    
+
     @SuppressWarnings("unchecked")
     public List<Order> findAll() {
-        EntityManager manager = emf.createEntityManager();
-        Query query = manager.createQuery("SELECT o FROM Order o ORDER BY o.orderDate DESC");
-        return query.getResultList();
-    }
-    
-    @SuppressWarnings("unchecked")
-    public List<Order> findByUserId(int userId) {
-        EntityManager manager = emf.createEntityManager();
-        Query query = manager.createQuery("SELECT o FROM Order o WHERE o.user.userId = :userId ORDER BY o.orderDate DESC");
-        query.setParameter("userId", userId);
-        return query.getResultList();
-    }
-    
-    public long count() {
-        EntityManager manager = emf.createEntityManager();
-        Query query = manager.createQuery("SELECT COUNT(o) FROM Order o");
-        return (Long) query.getSingleResult();
-    }
-    
-    public float getTotalRevenue() {
+        EntityManager manager = null;
         try {
-            EntityManager manager = emf.createEntityManager();
-            Query query = manager.createQuery("SELECT SUM(o.totalAmount) FROM Order o WHERE o.status != 'CANCELLED'");
-            Object result = query.getSingleResult();
-            return result != null ? ((Number) result).floatValue() : 0f;
-        } catch (Exception e) {
-            return 0f;
+            manager = emf.createEntityManager();
+            Query query = manager.createQuery("""
+                SELECT DISTINCT o FROM Order o
+                JOIN FETCH o.user
+                LEFT JOIN FETCH o.orderItems oi
+                LEFT JOIN FETCH oi.product p
+                LEFT JOIN FETCH p.category
+                ORDER BY o.orderDate DESC
+            """);
+            return query.getResultList();
+        } finally {
+            if (manager != null) {
+                manager.close();
+            }
         }
     }
-    
+
+    @SuppressWarnings("unchecked")
+    public List<Order> findByUserId(int userId) {
+        EntityManager manager = null;
+        try {
+            manager = emf.createEntityManager();
+            Query query = manager.createQuery("""
+                SELECT DISTINCT o FROM Order o
+                JOIN FETCH o.user
+                LEFT JOIN FETCH o.orderItems oi
+                LEFT JOIN FETCH oi.product p
+                LEFT JOIN FETCH p.category
+                WHERE o.user.userId = :userId
+                ORDER BY o.orderDate DESC
+            """);
+            query.setParameter("userId", userId);
+            return query.getResultList();
+        } finally {
+            if (manager != null) {
+                manager.close();
+            }
+        }
+    }
+
+    public long count() {
+        EntityManager manager = null;
+        try {
+            manager = emf.createEntityManager();
+            Query query = manager.createQuery("SELECT COUNT(o) FROM Order o");
+            return (Long) query.getSingleResult();
+        } finally {
+            if (manager != null) {
+                manager.close();
+            }
+        }
+    }
+
+    public float getTotalRevenue() {
+        EntityManager manager = null;
+        try {
+            manager = emf.createEntityManager();
+            Query query = manager.createQuery("""
+                SELECT SUM(o.totalAmount) FROM Order o WHERE o.status <> 'CANCELLED'
+            """);
+            Object result = query.getSingleResult();
+            return result != null ? ((Number) result).floatValue() : 0f;
+        } finally {
+            if (manager != null) {
+                manager.close();
+            }
+        }
+    }
+
     @SuppressWarnings("unchecked")
     public List<Order> findRecentOrders(int limit) {
-        EntityManager manager = emf.createEntityManager();
-        Query query = manager.createQuery("SELECT o FROM Order o ORDER BY o.orderDate DESC");
-        query.setMaxResults(limit);
-        return query.getResultList();
+        EntityManager manager = null;
+        try {
+            manager = emf.createEntityManager();
+            Query query = manager.createQuery("""
+                SELECT DISTINCT o FROM Order o
+                JOIN FETCH o.user
+                LEFT JOIN FETCH o.orderItems oi
+                LEFT JOIN FETCH oi.product p
+                LEFT JOIN FETCH p.category
+                ORDER BY o.orderDate DESC
+            """);
+            query.setMaxResults(limit);
+            return query.getResultList();
+        } finally {
+            if (manager != null) {
+                manager.close();
+            }
+        }
     }
-    
+
     @SuppressWarnings("unchecked")
     public List<Order> findOrdersByDateRange(LocalDate startDate, LocalDate endDate) {
-        EntityManager manager = emf.createEntityManager();
-        Query query = manager.createQuery("SELECT o FROM Order o WHERE DATE(o.orderDate) BETWEEN :startDate AND :endDate ORDER BY o.orderDate DESC");
-        query.setParameter("startDate", startDate);
-        query.setParameter("endDate", endDate);
-        return query.getResultList();
+        EntityManager manager = null;
+        try {
+            manager = emf.createEntityManager();
+            Query query = manager.createQuery("""
+                SELECT DISTINCT o FROM Order o
+                JOIN FETCH o.user
+                LEFT JOIN FETCH o.orderItems oi
+                LEFT JOIN FETCH oi.product p
+                LEFT JOIN FETCH p.category
+                WHERE o.orderDate BETWEEN :startDate AND :endDate
+                ORDER BY o.orderDate DESC
+            """);
+            query.setParameter("startDate", startDate.atStartOfDay());
+            query.setParameter("endDate", endDate.atTime(23, 59, 59));
+            return query.getResultList();
+        } finally {
+            if (manager != null) {
+                manager.close();
+            }
+        }
     }
-    
+
     @SuppressWarnings("unchecked")
     public List<Order> findOrdersByCategory(int categoryId) {
-        EntityManager manager = emf.createEntityManager();
-        Query query = manager.createQuery("SELECT DISTINCT o FROM Order o JOIN o.orderItems oi WHERE oi.product.category.categoryId = :categoryId ORDER BY o.orderDate DESC");
-        query.setParameter("categoryId", categoryId);
-        return query.getResultList();
+        EntityManager manager = null;
+        try {
+            manager = emf.createEntityManager();
+            Query query = manager.createQuery("""
+                SELECT DISTINCT o FROM Order o
+                JOIN o.orderItems oi
+                JOIN oi.product p
+                JOIN FETCH o.user
+                LEFT JOIN FETCH o.orderItems oij
+                LEFT JOIN FETCH oij.product pij
+                LEFT JOIN FETCH pij.category
+                WHERE p.category.categoryId = :categoryId
+                ORDER BY o.orderDate DESC
+            """);
+            query.setParameter("categoryId", categoryId);
+            return query.getResultList();
+        } finally {
+            if (manager != null) {
+                manager.close();
+            }
+        }
     }
-    
+
     @SuppressWarnings("unchecked")
     public List<Order> findOrdersByDateRangeAndCategory(LocalDate startDate, LocalDate endDate, int categoryId) {
-        EntityManager manager = emf.createEntityManager();
-        Query query = manager.createQuery("SELECT DISTINCT o FROM Order o JOIN o.orderItems oi WHERE DATE(o.orderDate) BETWEEN :startDate AND :endDate AND oi.product.category.categoryId = :categoryId ORDER BY o.orderDate DESC");
-        query.setParameter("startDate", startDate);
-        query.setParameter("endDate", endDate);
-        query.setParameter("categoryId", categoryId);
-        return query.getResultList();
+        EntityManager manager = null;
+        try {
+            manager = emf.createEntityManager();
+            Query query = manager.createQuery("""
+                SELECT DISTINCT o FROM Order o
+                JOIN o.orderItems oi
+                JOIN oi.product p
+                JOIN FETCH o.user
+                LEFT JOIN FETCH o.orderItems oij
+                LEFT JOIN FETCH oij.product pij
+                LEFT JOIN FETCH pij.category
+                WHERE o.orderDate BETWEEN :startDate AND :endDate
+                  AND p.category.categoryId = :categoryId
+                ORDER BY o.orderDate DESC
+            """);
+            query.setParameter("startDate", startDate.atStartOfDay());
+            query.setParameter("endDate", endDate.atTime(23, 59, 59));
+            query.setParameter("categoryId", categoryId);
+            return query.getResultList();
+        } finally {
+            if (manager != null) {
+                manager.close();
+            }
+        }
     }
 }

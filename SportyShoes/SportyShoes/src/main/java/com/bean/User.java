@@ -123,4 +123,9 @@ public class User {
     public void setOrders(List<Order> orders) {
         this.orders = orders;
     }
+    
+    public String getName() {
+        return (firstName != null ? firstName : "") + " " + (lastName != null ? lastName : "");
+    }
+
 }
