@@ -20,7 +20,7 @@ public class AdminService {
     
     public Admin authenticateAdmin(String username, String password) {
         Admin admin = adminRepository.findByUsername(username);
-        if (admin != null && passwordEncoder.matches(password, admin.getPassword())) {
+        if (admin != null && password.equals(admin.getPassword())) {
             return admin;
         }
         return null;

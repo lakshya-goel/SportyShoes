@@ -53,13 +53,16 @@ public class AdminController {
     }
     
     // Admin Login Process
-    @PostMapping("/login")
-    public String login(@RequestParam String username, 
+    @SuppressWarnings("unused")
+	@PostMapping("/login")
+    public String login(@RequestParam String username,  
                        @RequestParam String password, 
                        HttpSession session, 
                        RedirectAttributes redirectAttributes) {
         
         Admin admin = adminService.authenticateAdmin(username, password);
+        System.out.println(" actual: "+admin.getPassword() + " " + admin.getUsername());
+        
         if (admin != null) {
             session.setAttribute("admin", admin);
             adminService.updateLastLogin(admin.getAdminId());
@@ -92,7 +95,7 @@ public class AdminController {
         List<Order> recentOrders = orderService.getRecentOrders(5);
         model.addAttribute("recentOrders", recentOrders);
         
-        return "admin/dashboard";
+        return "dashboard";
     }
     
     // Admin Logout

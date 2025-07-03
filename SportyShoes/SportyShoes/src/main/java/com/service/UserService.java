@@ -18,9 +18,7 @@ public class UserService {
     private BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
     
     public User authenticateUser(String username, String password) {
-        System.out.println("Trying to login with: " + username + " / " + password);
         User user = userRepository.findByUsername(username);
-        System.out.println("Actual: " +  user.getAddress() +" "+user.getPassword());
 
         if (user != null && passwordEncoder.matches(password, user.getPassword())) {
             return user;

@@ -15,15 +15,8 @@ public class SecurityConfig {
         http
             .csrf().disable()
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/admin/**").authenticated()
                 .anyRequest().permitAll()
-            )
-            .logout(logout -> logout
-                .logoutUrl("/logout")
-                .permitAll()
             );
-
         return http.build();
     }
 }
-

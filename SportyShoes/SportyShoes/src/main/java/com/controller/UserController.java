@@ -53,8 +53,6 @@ public class UserController {
                         HttpSession session,
                         Model model) {
     	
-    	System.out.println("POST /user/login hit");
-
         User user = userService.authenticateUser(username, password);
         if (user != null) {
             session.setAttribute("user", user);
@@ -67,7 +65,6 @@ public class UserController {
     
     @GetMapping("/login")
     public String loginPage() {
-	    System.out.println("GET /user/login hit");
         return "login";
     }
     
