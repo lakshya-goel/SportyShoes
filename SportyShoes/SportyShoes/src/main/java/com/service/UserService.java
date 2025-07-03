@@ -20,9 +20,9 @@ public class UserService {
     public User authenticateUser(String username, String password) {
         System.out.println("Trying to login with: " + username + " / " + password);
         User user = userRepository.findByUsername(username);
-        System.out.println("Actual: " +  user.getPassword());
+        System.out.println("Actual: " +  user.getAddress() +" "+user.getPassword());
 
-        if (user != null && passwordEncoder.matches(passwordEncoder.encode(password), user.getPassword())) {
+        if (user != null && passwordEncoder.matches(password, user.getPassword())) {
             return user;
         }
         return null ;

@@ -46,11 +46,6 @@ public class UserController {
         }
     }
 
-    @GetMapping("/login")
-    public String loginPage() {
-	    System.out.println("GET /user/login hit");
-        return "login";
-    }
 
     @PostMapping("/login")
     public String login(@RequestParam String username,
@@ -68,6 +63,12 @@ public class UserController {
             model.addAttribute("error", "Invalid username or password");
             return "login";
         }
+    }
+    
+    @GetMapping("/login")
+    public String loginPage() {
+	    System.out.println("GET /user/login hit");
+        return "login";
     }
     
     @GetMapping("/logout")

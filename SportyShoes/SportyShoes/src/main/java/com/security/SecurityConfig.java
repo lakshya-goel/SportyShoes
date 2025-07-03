@@ -18,12 +18,6 @@ public class SecurityConfig {
                 .requestMatchers("/admin/**").authenticated()
                 .anyRequest().permitAll()
             )
-            .formLogin(form -> form
-                .loginPage("/user/login")           // GET page
-                .loginProcessingUrl("/user/login")  // POST form submit
-                .defaultSuccessUrl("/products", true)
-                .permitAll()
-            )
             .logout(logout -> logout
                 .logoutUrl("/logout")
                 .permitAll()
