@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Products</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    
+</head>
+<body>
+<h2>Our Products</h2>
+<form method="get" action="/products">
+    <input type="text" name="keyword" placeholder="Search...">
+    <button type="submit">Search</button>
+</form>
+
+<div th:each="product : ${products}">
+    <h3 th:text="${product.pname}"></h3>
+    <p th:text="${product.description}"></p>
+    <p>Price: <span th:text="${product.price}"></span></p>
+    <a th:href="@{/products/{id}(id=${product.pid})}">View</a>
+</div>
+
+<a href="/">Back to Home</a>
+</body>
+</html>

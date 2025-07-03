@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <title>Manage Orders</title>
+  <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+  <h1>Order Management</h1>
+
+  <table>
+    <tr>
+      <th>Order ID</th><th>User</th><th>Total</th><th>Status</th><th>Update Status</th>
+    </tr>
+    <tr th:each="order : ${orders}">
+      <td th:text="${order.orderId}"></td>
+      <td th:text="${order.user.username}"></td>
+      <td th:text="${order.totalAmount}"></td>
+      <td th:text="${order.status}"></td>
+      <td>
+        <form th:action="@{/admin/orders/update-status}" method="post">
+          <input type="hidden" name="orderId" th:value="${order.orderId}">
+          <select name="status">
+            <option>CONFIRMED</option>
+            <option>SHIPPED</option>
+            <option>DELIVERED</option>
+          </select>
+          <button type="submit">Update</button>
+        </form>
+      </td>
+    </tr>
+  </table>
+
+  <a href="/admin/dashboard">Back to Dashboard</a>
+</body>
+</html>

@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <title>Purchase Reports</title>
+  <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+  <h1>Purchase Reports</h1>
+
+  <form th:action="@{/admin/reports/generate}" method="post">
+    <label>Start Date:</label>
+    <input type="date" name="startDate" th:value="${startDate}">
+    <label>End Date:</label>
+    <input type="date" name="endDate" th:value="${endDate}">
+    <label>Category:</label>
+    <select name="categoryId">
+      <option value="">All Categories</option>
+      <option th:each="category : ${categories}" th:value="${category.categoryId}" th:text="${category.name}" th:selected="${category.categoryId == categoryId}"></option>
+    </select>
+    <button type="submit">Generate Report</button>
+  </form>
+
+  <h2>Orders</h2>
+  <table>
+    <tr>
+      <th>Order ID</th><th>Total</th><th>Status</th><th>Date</th>
+    </tr>
+    <tr th:each="order : ${orders}">
+      <td th:text="${order.orderId}"></td>
+      <td th:text="${order.totalAmount}"></td>
+      <td th:text="${order.status}"></td>
+      <td th:text="${order.orderDate}"></td>
+    </tr>
+  </table>
+
+  <p>Total Revenue: $<span th:text="${totalRevenue}"></span></p>
+
+  <a href="/admin/dashboard">Back to Dashboard</a>
+</body>
+</html>
